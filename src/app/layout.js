@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/main/SmoothScroll";
+import Navbar from "@/components/main/Navbar";
+import Footer from "@/components/main/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +32,10 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
     >
       <body className="min-h-screen flex flex-col">
+        <Navbar />
         <SmoothScroll />
         {children}
+        <Footer />
       </body>
     </html>
   );
