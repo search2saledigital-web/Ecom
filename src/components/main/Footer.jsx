@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-   
+
     Phone,
     Mail,
     Clock3,
@@ -21,8 +21,14 @@ import {
     FaYoutube,
     FaLinkedin,
 } from "react-icons/fa";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+    const pathname = usePathname();
+    const isAdminRoute = pathname.startsWith("/admin");
+    if (isAdminRoute) {
+        return null; // Don't render the navbar for admin routes
+    }
     const usefulLinks = [
         { name: "Home", href: "/" },
         { name: "Shop", href: "/shop" },

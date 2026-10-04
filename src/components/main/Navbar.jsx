@@ -24,6 +24,7 @@ import {
     FaTwitter,
     FaWhatsapp,
 } from "react-icons/fa";
+import { usePathname } from "next/navigation";
 
 const menuItems = [
     { name: "Home", href: "/" },
@@ -43,6 +44,11 @@ const socialItems = [
 ];
 
 export default function Navbar() {
+    const pathname = usePathname();
+    const isAdminRoute = pathname.startsWith("/admin");
+    if (isAdminRoute) {
+        return null; // Don't render the navbar for admin routes
+    }
     const [mobileMenu, setMobileMenu] = useState(false);
     const [showTopBar, setShowTopBar] = useState(true);
     const lastScrollY = useRef(0);
