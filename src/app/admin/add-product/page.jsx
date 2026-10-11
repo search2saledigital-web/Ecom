@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState, } from "react";
 import Sidebar from "@/components/admin/Sidebar";
 import {
     ArrowLeft,
@@ -18,6 +18,9 @@ const labelClass =
     "mb-2 block text-sm font-medium text-gray-700";
 
 export default function Page() {
+    const [saving, setSaving] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
     const [form, setForm] = useState({
         name: "",
         slug: "",
@@ -56,16 +59,6 @@ export default function Page() {
         images: [],
     });
 
-    const categories = [
-        "Corporate Gifts",
-        "Office Products",
-        "Decorative Products",
-    ];
-
-    // -----------------------------
-    // BASIC INPUT
-    // -----------------------------
-
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -88,10 +81,6 @@ export default function Page() {
                 .replace(/(^-|-$)/g, ""),
         }));
     };
-
-    // -----------------------------
-    // KEY FEATURES
-    // -----------------------------
 
     const addFeature = () => {
         setForm((prev) => ({
@@ -121,10 +110,6 @@ export default function Page() {
         }));
     };
 
-    // -----------------------------
-    // APPLICATIONS
-    // -----------------------------
-
     const addApplication = () => {
         setForm((prev) => ({
             ...prev,
@@ -152,10 +137,6 @@ export default function Page() {
             ),
         }));
     };
-
-    // -----------------------------
-    // SPECIFICATIONS
-    // -----------------------------
 
     const addSpecification = () => {
         setForm((prev) => ({
@@ -195,10 +176,6 @@ export default function Page() {
         }));
     };
 
-    // -----------------------------
-    // PACKS
-    // -----------------------------
-
     const addPack = () => {
         setForm((prev) => ({
             ...prev,
@@ -236,10 +213,6 @@ export default function Page() {
         }));
     };
 
-    // -----------------------------
-    // IMAGES
-    // -----------------------------
-
     const handleImages = (e) => {
         const files = Array.from(e.target.files);
 
@@ -261,19 +234,192 @@ export default function Page() {
         }));
     };
 
-    // -----------------------------
-    // SUBMIT
-    // -----------------------------
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoadingCategories(true);
 
-    const handleSubmit = (e) => {
+                const response = await fetch(
+                    "/api/categories",
+                    {
+                        cache: "no-store",
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Failed to fetch categories"
+                    );
+                }
+
+                setCategories(
+                    data.categories || []
+                );
+            } catch (error) {
+                console.error(
+                    "CATEGORY FETCH ERROR:",
+                    error
+                );
+
+                alert(error.message);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("PRODUCT DATA:", form);
+        try {
+            setSaving(true);
 
-        alert("Product saved successfully!");
+            const formData = new FormData();
 
-        // Later:
-        // axios.post("/api/admin/products", form)
+            formData.append(
+                "name",
+                form.name.trim()
+            );
+
+            formData.append(
+                "slug",
+                form.slug.trim()
+            );
+
+            formData.append(
+                "category",
+                form.category
+            );
+
+            formData.append(
+                "oldPrice",
+                form.oldPrice || "0"
+            );
+
+            formData.append(
+                "realPrice",
+                form.realPrice
+            );
+
+            formData.append(
+                "shortDescription",
+                form.shortDescription.trim()
+            );
+
+            formData.append(
+                "longDescription",
+                form.longDescription.trim()
+            );
+
+            formData.append(
+                "videoLink",
+                form.videoLink.trim()
+            );
+
+            formData.append(
+                "weight",
+                form.weight.trim()
+            );
+
+            formData.append(
+                "length",
+                form.length.trim()
+            );
+
+            formData.append(
+                "breadth",
+                form.breadth.trim()
+            );
+
+            formData.append(
+                "height",
+                form.height.trim()
+            );
+
+            formData.append(
+                "keyFeatures",
+                JSON.stringify(
+                    form.keyFeatures
+                )
+            );
+
+            formData.append(
+                "applications",
+                JSON.stringify(
+                    form.applications
+                )
+            );
+
+            formData.append(
+                "specifications",
+                JSON.stringify(
+                    form.specifications
+                )
+            );
+
+            formData.append(
+                "packs",
+                JSON.stringify(form.packs)
+            );
+
+            formData.append(
+                "metaTitle",
+                form.metaTitle.trim()
+            );
+
+            formData.append(
+                "metaDescription",
+                form.metaDescription.trim()
+            );
+
+            // Upload images
+            form.images.forEach((image) => {
+                if (image.file) {
+                    formData.append(
+                        "images",
+                        image.file
+                    );
+                }
+            });
+
+            const response = await fetch("/api/products",
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                    "Failed to create product"
+                );
+            }
+
+            alert(
+                "Product added successfully!"
+            );
+
+            window.location.href = "/admin/all-products";
+        } catch (error) {
+            console.error(
+                "CREATE PRODUCT ERROR:",
+                error
+            );
+
+            alert(error.message);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -367,15 +513,17 @@ export default function Page() {
                                         required
                                     >
                                         <option value="">
-                                            Select Category
+                                            {loadingCategories
+                                                ? "Loading Categories..."
+                                                : "Select Category"}
                                         </option>
 
                                         {categories.map((category) => (
                                             <option
-                                                key={category}
-                                                value={category}
+                                                key={category._id}
+                                                value={category._id}
                                             >
-                                                {category}
+                                                {category.name}
                                             </option>
                                         ))}
                                     </select>
@@ -1032,9 +1180,12 @@ export default function Page() {
 
                             <button
                                 type="submit"
-                                className="rounded-xl bg-[#C9A227] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#b28d20]"
+                                disabled={saving}
+                                className="rounded-xl bg-[#C9A227] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#b28d20] disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                Save Product
+                                {saving
+                                    ? "Saving..."
+                                    : "Save Product"}
                             </button>
 
                         </div>

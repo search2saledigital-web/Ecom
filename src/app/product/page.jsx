@@ -108,35 +108,34 @@ export default function RemoteCarProductPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 xl:gap-12">
           {/* ================= GALLERY ================= */}
           <section className="lg:col-span-7">
-      <div className="lg:sticky lg:top-6">
+            <div className="lg:sticky lg:top-6">
 
-        <div className="flex flex-col gap-4 md:flex-row">
+              <div className="flex flex-col gap-4 md:flex-row">
 
-          {/* Thumbnails */}
-          <div className="order-2 flex gap-3 overflow-x-auto pb-1 md:order-1 md:w-24 md:flex-col md:overflow-visible">
-            {productImages.map((image, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setSelectedImage(index)}
-                className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-white p-1 transition sm:h-24 sm:w-24 ${
-                  selectedImage === index
-                    ? "border-2 border-[#d1432d]"
-                    : "border border-neutral-200 hover:border-neutral-400"
-                }`}
-              >
-                <img
-                  src={image}
-                  alt={`TurboX remote car view ${index + 1}`}
-                  className="h-full w-full rounded-xl object-cover"
-                />
-              </button>
-            ))}
-          </div>
+                {/* Thumbnails */}
+                <div className="order-2 flex gap-3 overflow-x-auto pb-1 md:order-1 md:w-24 md:flex-col md:overflow-visible">
+                  {productImages.map((image, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setSelectedImage(index)}
+                      className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-white p-1 transition sm:h-24 sm:w-24 ${selectedImage === index
+                          ? "border-2 border-[#d1432d]"
+                          : "border border-neutral-200 hover:border-neutral-400"
+                        }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`TurboX remote car view ${index + 1}`}
+                        className="h-full w-full rounded-xl object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
 
-          {/* Fixed Height Image */}
-          <div
-            className="
+                {/* Fixed Height Image */}
+                <div
+                  className="
               order-1
               relative
               w-full
@@ -150,113 +149,113 @@ export default function RemoteCarProductPage() {
               md:h-[550px]
               
             "
-          >
-            {/* Badges */}
-            <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2 sm:left-6 sm:top-6">
-              <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-900 shadow-sm backdrop-blur">
-                Bestseller
-              </span>
+                >
+                  {/* Badges */}
+                  <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2 sm:left-6 sm:top-6">
+                    <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-900 shadow-sm backdrop-blur">
+                      Bestseller
+                    </span>
 
-              <span className="rounded-full bg-[#171717] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                4WD
-              </span>
+                    <span className="rounded-full bg-[#171717] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                      4WD
+                    </span>
+                  </div>
+
+                  {/* Zoom */}
+                  <button
+                    type="button"
+                    className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md backdrop-blur transition hover:scale-105 sm:right-6 sm:top-6"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21 21l-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10 7v6m3-3H7"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Main Image */}
+                  <img
+                    src={productImages[selectedImage]}
+                    alt="TurboX RC Off-Road Remote Car"
+                    className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
+                  />
+
+                  {/* Previous */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedImage((prev) =>
+                        prev === 0 ? productImages.length - 1 : prev - 1
+                      )
+                    }
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md transition hover:scale-110 sm:left-5"
+                    aria-label="Previous image"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Next */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedImage(
+                        (prev) => (prev + 1) % productImages.length
+                      )
+                    }
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#171717] text-white shadow-md transition hover:scale-110 sm:right-5"
+                    aria-label="Next image"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Counter */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-[11px] font-medium text-white">
+                    {selectedImage + 1} / {productImages.length}
+                  </div>
+                </div>
+              </div>
             </div>
-
-            {/* Zoom */}
-            <button
-              type="button"
-              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md backdrop-blur transition hover:scale-105 sm:right-6 sm:top-6"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 7v6m3-3H7"
-                />
-              </svg>
-            </button>
-
-            {/* Main Image */}
-            <img
-              src={productImages[selectedImage]}
-              alt="TurboX RC Off-Road Remote Car"
-              className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
-            />
-
-            {/* Previous */}
-            <button
-              type="button"
-              onClick={() =>
-                setSelectedImage((prev) =>
-                  prev === 0 ? productImages.length - 1 : prev - 1
-                )
-              }
-              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md transition hover:scale-110 sm:left-5"
-              aria-label="Previous image"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-
-            {/* Next */}
-            <button
-              type="button"
-              onClick={() =>
-                setSelectedImage(
-                  (prev) => (prev + 1) % productImages.length
-                )
-              }
-              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#171717] text-white shadow-md transition hover:scale-110 sm:right-5"
-              aria-label="Next image"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-
-            {/* Counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-[11px] font-medium text-white">
-              {selectedImage + 1} / {productImages.length}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+          </section>
 
 
           {/* ================= PRODUCT INFO ================= */}
@@ -343,11 +342,10 @@ export default function RemoteCarProductPage() {
                     key={version}
                     type="button"
                     onClick={() => setSelectedVersion(version)}
-                    className={`rounded-xl border px-4 py-3 text-left text-xs font-semibold transition ${
-                      selectedVersion === version
+                    className={`rounded-xl border px-4 py-3 text-left text-xs font-semibold transition ${selectedVersion === version
                         ? "border-[#d1432d] bg-red-50 text-[#d1432d]"
                         : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
-                    }`}
+                      }`}
                   >
                     {version}
 
@@ -383,11 +381,10 @@ export default function RemoteCarProductPage() {
                     type="button"
                     onClick={() => setSelectedColor(color.name)}
                     title={color.name}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
-                      selectedColor === color.name
+                    className={`flex h-10 w-10 items-center justify-center rounded-full transition ${selectedColor === color.name
                         ? "ring-2 ring-[#f7f7f5] ring-offset-2 ring-offset-[#171717]"
                         : "border-2 border-white shadow-sm"
-                    }`}
+                      }`}
                     style={{ backgroundColor: color.value }}
                   />
                 ))}

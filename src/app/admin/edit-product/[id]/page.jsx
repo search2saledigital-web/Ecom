@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/components/admin/Sidebar";
 import {
     ArrowLeft,
@@ -10,6 +10,7 @@ import {
     Trash2,
     Upload,
     X,
+    Loader2,
 } from "lucide-react";
 
 const inputClass =
@@ -18,96 +19,219 @@ const inputClass =
 const labelClass =
     "mb-2 block text-sm font-medium text-gray-700";
 
-const categories = [
-    "Corporate Gifts",
-    "Office Products",
-    "Decorative Products",
-];
-
-const demoProduct = {
-    id: 1,
-    name: "Premium Executive Gift Set",
-    slug: "premium-executive-gift-set",
-    category: "Corporate Gifts",
-
-    oldPrice: "2499",
-    realPrice: "1999",
-
-    shortDescription:
-        "Premium executive gift set suitable for corporate gifting and business events.",
-
-    longDescription:
-        "A premium and elegant executive gift set designed for corporate professionals, employee gifting, business events and special occasions.",
-
-    videoLink: "https://youtube.com/watch?v=example",
-
-    weight: "850 g",
-    length: "25 cm",
-    breadth: "18 cm",
-    height: "8 cm",
-
-    metaTitle: "Premium Executive Gift Set | Corporate Gifts",
-    metaDescription:
-        "Buy premium executive gift sets for corporate gifting, employees, clients and business events.",
-
-    keyFeatures: [
-        "Premium quality materials",
-        "Elegant executive design",
-        "Ideal for corporate gifting",
-        "Custom branding available",
-    ],
-
-    applications: [
-        "Corporate gifting",
-        "Employee gifts",
-        "Client gifting",
-        "Business events",
-    ],
-
-    specifications: [
-        {
-            name: "Material",
-            value: "Premium Leather",
-        },
-        {
-            name: "Color",
-            value: "Black",
-        },
-        {
-            name: "Finish",
-            value: "Matte",
-        },
-    ],
-
-    packs: [
-        {
-            name: "10 Pack Box",
-            quantity: "10",
-            price: "1799",
-        },
-        {
-            name: "50 Pack Box",
-            quantity: "50",
-            price: "7999",
-        },
-        {
-            name: "100 Pack Box",
-            quantity: "100",
-            price: "14999",
-        },
-    ],
-
-    images: [
-        "/products/product-1.jpg",
-        "/products/product-2.jpg",
-        "/products/product-3.jpg",
-    ],
+const emptyForm = {
+    name: "",
+    slug: "",
+    category: "",
+    oldPrice: "",
+    realPrice: "",
+    shortDescription: "",
+    longDescription: "",
+    videoLink: "",
+    weight: "",
+    length: "",
+    breadth: "",
+    height: "",
+    keyFeatures: [],
+    applications: [],
+    specifications: [],
+    packs: [],
+    images: [],
+    metaTitle: "",
+    metaDescription: "",
 };
 
 export default function Page() {
     const params = useParams();
+    const router = useRouter();
 
-    const [form, setForm] = useState(demoProduct);
+    const productId = params?.id;
+
+    const [form, setForm] = useState(emptyForm);
+
+    const [categories, setCategories] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    // --------------------------------
+    // FETCH PRODUCT
+    // --------------------------------
+
+    useEffect(() => {
+        if (!productId) return;
+
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+
+                const response = await fetch(
+                    `/api/products/${productId}`,
+                    {
+                        cache: "no-store",
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || "Failed to fetch product"
+                    );
+                }
+
+                const product = data.product;
+
+                setForm({
+                    name: product.name || "",
+                    slug: product.slug || "",
+
+                    category:
+                        product.category?._id ||
+                        product.category ||
+                        "",
+
+                    oldPrice:
+                        product.oldPrice !== undefined &&
+                            product.oldPrice !== null
+                            ? String(product.oldPrice)
+                            : "",
+
+                    realPrice:
+                        product.realPrice !== undefined &&
+                            product.realPrice !== null
+                            ? String(product.realPrice)
+                            : "",
+
+                    shortDescription:
+                        product.shortDescription || "",
+
+                    longDescription:
+                        product.longDescription || "",
+
+                    videoLink:
+                        product.videoLink || "",
+
+                    weight:
+                        product.weight || "",
+
+                    length:
+                        product.length || "",
+
+                    breadth:
+                        product.breadth || "",
+
+                    height:
+                        product.height || "",
+
+                    keyFeatures:
+                        Array.isArray(product.keyFeatures)
+                            ? product.keyFeatures
+                            : [],
+
+                    applications:
+                        Array.isArray(product.applications)
+                            ? product.applications
+                            : [],
+
+                    specifications:
+                        Array.isArray(product.specifications)
+                            ? product.specifications.map((item) => ({
+                                name: item.name || "",
+                                value: item.value || "",
+                            }))
+                            : [],
+
+                    packs:
+                        Array.isArray(product.packs)
+                            ? product.packs.map((item) => ({
+                                name: item.name || "",
+                                quantity:
+                                    item.quantity !== undefined &&
+                                        item.quantity !== null
+                                        ? String(item.quantity)
+                                        : "",
+                                price:
+                                    item.price !== undefined &&
+                                        item.price !== null
+                                        ? String(item.price)
+                                        : "",
+                            }))
+                            : [],
+
+                    images:
+                        Array.isArray(product.images)
+                            ? product.images.map((image) => ({
+                                type: "existing",
+                                url: image.url,
+                                key: image.key,
+                            }))
+                            : [],
+
+                    metaTitle:
+                        product.metaTitle || "",
+
+                    metaDescription:
+                        product.metaDescription || "",
+                });
+            } catch (error) {
+                console.error(
+                    "FETCH PRODUCT ERROR:",
+                    error
+                );
+
+                alert(error.message);
+
+                router.push("/admin/products");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProduct();
+    }, [productId, router]);
+
+    // --------------------------------
+    // FETCH CATEGORIES
+    // --------------------------------
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoadingCategories(true);
+
+                const response = await fetch(
+                    "/api/categories",
+                    {
+                        cache: "no-store",
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Failed to fetch categories"
+                    );
+                }
+
+                setCategories(data.categories || []);
+            } catch (error) {
+                console.error(
+                    "FETCH CATEGORIES ERROR:",
+                    error
+                );
+
+                alert(error.message);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     // --------------------------------
     // BASIC INPUT
@@ -138,13 +262,19 @@ export default function Page() {
     const addFeature = () => {
         setForm((prev) => ({
             ...prev,
-            keyFeatures: [...prev.keyFeatures, ""],
+            keyFeatures: [
+                ...prev.keyFeatures,
+                "",
+            ],
         }));
     };
 
     const updateFeature = (index, value) => {
         setForm((prev) => {
-            const updated = [...prev.keyFeatures];
+            const updated = [
+                ...prev.keyFeatures,
+            ];
+
             updated[index] = value;
 
             return {
@@ -157,9 +287,10 @@ export default function Page() {
     const removeFeature = (index) => {
         setForm((prev) => ({
             ...prev,
-            keyFeatures: prev.keyFeatures.filter(
-                (_, i) => i !== index
-            ),
+            keyFeatures:
+                prev.keyFeatures.filter(
+                    (_, i) => i !== index
+                ),
         }));
     };
 
@@ -170,13 +301,22 @@ export default function Page() {
     const addApplication = () => {
         setForm((prev) => ({
             ...prev,
-            applications: [...prev.applications, ""],
+            applications: [
+                ...prev.applications,
+                "",
+            ],
         }));
     };
 
-    const updateApplication = (index, value) => {
+    const updateApplication = (
+        index,
+        value
+    ) => {
         setForm((prev) => {
-            const updated = [...prev.applications];
+            const updated = [
+                ...prev.applications,
+            ];
+
             updated[index] = value;
 
             return {
@@ -189,9 +329,10 @@ export default function Page() {
     const removeApplication = (index) => {
         setForm((prev) => ({
             ...prev,
-            applications: prev.applications.filter(
-                (_, i) => i !== index
-            ),
+            applications:
+                prev.applications.filter(
+                    (_, i) => i !== index
+                ),
         }));
     };
 
@@ -212,9 +353,15 @@ export default function Page() {
         }));
     };
 
-    const updateSpecification = (index, field, value) => {
+    const updateSpecification = (
+        index,
+        field,
+        value
+    ) => {
         setForm((prev) => {
-            const updated = [...prev.specifications];
+            const updated = [
+                ...prev.specifications,
+            ];
 
             updated[index] = {
                 ...updated[index],
@@ -228,12 +375,15 @@ export default function Page() {
         });
     };
 
-    const removeSpecification = (index) => {
+    const removeSpecification = (
+        index
+    ) => {
         setForm((prev) => ({
             ...prev,
-            specifications: prev.specifications.filter(
-                (_, i) => i !== index
-            ),
+            specifications:
+                prev.specifications.filter(
+                    (_, i) => i !== index
+                ),
         }));
     };
 
@@ -255,9 +405,15 @@ export default function Page() {
         }));
     };
 
-    const updatePack = (index, field, value) => {
+    const updatePack = (
+        index,
+        field,
+        value
+    ) => {
         setForm((prev) => {
-            const updated = [...prev.packs];
+            const updated = [
+                ...prev.packs,
+            ];
 
             updated[index] = {
                 ...updated[index],
@@ -285,41 +441,352 @@ export default function Page() {
     // --------------------------------
 
     const handleImages = (e) => {
-        const files = Array.from(e.target.files);
+        const files = Array.from(
+            e.target.files || []
+        );
 
-        const newImages = files.map((file) => ({
-            type: "new",
-            file,
-            preview: URL.createObjectURL(file),
-        }));
+        if (!files.length) return;
+
+        const newImages = files.map(
+            (file) => ({
+                type: "new",
+                file,
+                preview:
+                    URL.createObjectURL(file),
+            })
+        );
 
         setForm((prev) => ({
             ...prev,
-            images: [...prev.images, ...newImages],
+            images: [
+                ...prev.images,
+                ...newImages,
+            ],
         }));
+
+        e.target.value = "";
     };
 
     const removeImage = (index) => {
-        setForm((prev) => ({
-            ...prev,
-            images: prev.images.filter(
-                (_, i) => i !== index
-            ),
-        }));
+        setForm((prev) => {
+            const image = prev.images[index];
+
+            // Revoke preview URL for newly uploaded image
+            if (
+                image?.type === "new" &&
+                image?.preview
+            ) {
+                URL.revokeObjectURL(
+                    image.preview
+                );
+            }
+
+            return {
+                ...prev,
+                images: prev.images.filter(
+                    (_, i) => i !== index
+                ),
+            };
+        });
     };
 
     // --------------------------------
-    // SAVE
+    // SAVE PRODUCT
     // --------------------------------
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("PRODUCT ID:", params.id);
-        console.log("UPDATED PRODUCT:", form);
+        if (!productId) {
+            alert("Product ID is missing");
+            return;
+        }
 
-        alert("Product updated successfully!");
+        try {
+            setSaving(true);
+
+            const formData = new FormData();
+
+            formData.append(
+                "name",
+                form.name.trim()
+            );
+
+            formData.append(
+                "slug",
+                form.slug.trim()
+            );
+
+            formData.append(
+                "category",
+                form.category
+            );
+
+            formData.append(
+                "oldPrice",
+                form.oldPrice || "0"
+            );
+
+            formData.append(
+                "realPrice",
+                form.realPrice
+            );
+
+            formData.append(
+                "shortDescription",
+                form.shortDescription.trim()
+            );
+
+            formData.append(
+                "longDescription",
+                form.longDescription.trim()
+            );
+
+            formData.append(
+                "videoLink",
+                form.videoLink.trim()
+            );
+
+            formData.append(
+                "weight",
+                form.weight.trim()
+            );
+
+            formData.append(
+                "length",
+                form.length.trim()
+            );
+
+            formData.append(
+                "breadth",
+                form.breadth.trim()
+            );
+
+            formData.append(
+                "height",
+                form.height.trim()
+            );
+
+            formData.append(
+                "keyFeatures",
+                JSON.stringify(
+                    form.keyFeatures
+                        .map((item) =>
+                            item.trim()
+                        )
+                        .filter(Boolean)
+                )
+            );
+
+            formData.append(
+                "applications",
+                JSON.stringify(
+                    form.applications
+                        .map((item) =>
+                            item.trim()
+                        )
+                        .filter(Boolean)
+                )
+            );
+
+            formData.append(
+                "specifications",
+                JSON.stringify(
+                    form.specifications
+                        .map((item) => ({
+                            name:
+                                item.name?.trim() ||
+                                "",
+                            value:
+                                item.value?.trim() ||
+                                "",
+                        }))
+                        .filter(
+                            (item) =>
+                                item.name ||
+                                item.value
+                        )
+                )
+            );
+
+            formData.append(
+                "packs",
+                JSON.stringify(
+                    form.packs
+                        .map((item) => ({
+                            name:
+                                item.name?.trim() ||
+                                "",
+                            quantity:
+                                item.quantity || "0",
+                            price:
+                                item.price || "0",
+                        }))
+                        .filter(
+                            (item) =>
+                                item.name ||
+                                item.quantity !== "0" ||
+                                item.price !== "0"
+                        )
+                )
+            );
+
+            formData.append(
+                "metaTitle",
+                form.metaTitle.trim()
+            );
+
+            formData.append(
+                "metaDescription",
+                form.metaDescription.trim()
+            );
+
+            // --------------------------------
+            // EXISTING IMAGE KEYS TO KEEP
+            // --------------------------------
+
+            const existingImages =
+                form.images.filter(
+                    (image) =>
+                        image.type ===
+                        "existing"
+                );
+
+            const removeImageKeys = [];
+
+            // We need the original product images
+            // to determine which ones were removed.
+            const response =
+                await fetch(
+                    `/api/products/${productId}`,
+                    {
+                        cache: "no-store",
+                    }
+                );
+
+            const currentData =
+                await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    currentData.message ||
+                    "Failed to verify current product images"
+                );
+            }
+
+            const originalImages =
+                currentData.product?.images ||
+                [];
+
+            originalImages.forEach(
+                (originalImage) => {
+                    const stillExists =
+                        existingImages.some(
+                            (image) =>
+                                image.key ===
+                                originalImage.key
+                        );
+
+                    if (!stillExists) {
+                        removeImageKeys.push(
+                            originalImage.key
+                        );
+                    }
+                }
+            );
+
+            formData.append(
+                "removeImageKeys",
+                JSON.stringify(
+                    removeImageKeys
+                )
+            );
+
+            // --------------------------------
+            // NEW IMAGES
+            // --------------------------------
+
+            form.images.forEach((image) => {
+                if (
+                    image.type === "new" &&
+                    image.file
+                ) {
+                    formData.append(
+                        "images",
+                        image.file
+                    );
+                }
+            });
+
+            const updateResponse =
+                await fetch(
+                    `/api/products/${productId}`,
+                    {
+                        method: "PUT",
+                        body: formData,
+                    }
+                );
+
+            const updateData =
+                await updateResponse.json();
+
+            if (!updateResponse.ok) {
+                throw new Error(
+                    updateData.message ||
+                    "Failed to update product"
+                );
+            }
+
+            alert(
+                "Product updated successfully!"
+            );
+
+            router.push(
+                "/admin/all-products"
+            );
+
+            router.refresh();
+        } catch (error) {
+            console.error(
+                "UPDATE PRODUCT ERROR:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Failed to update product"
+            );
+        } finally {
+            setSaving(false);
+        }
     };
+
+    // --------------------------------
+    // LOADING
+    // --------------------------------
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F7F7F5]">
+                <Sidebar />
+
+                <main className="pt-16 lg:ml-[270px] lg:pt-0">
+                    <div className="flex min-h-[70vh] items-center justify-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <Loader2
+                                size={32}
+                                className="animate-spin text-[#C9A227]"
+                            />
+
+                            <p className="text-sm text-gray-500">
+                                Loading product...
+                            </p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#F7F7F5]">
@@ -331,7 +798,7 @@ export default function Page() {
                     {/* HEADER */}
                     <div className="mb-8">
                         <Link
-                            href="/admin/all-products"
+                            href="/admin/products"
                             className="mb-3 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-[#C9A227]"
                         >
                             <ArrowLeft size={16} />
@@ -345,13 +812,14 @@ export default function Page() {
                                 </h1>
 
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Update product information, pricing,
-                                    packs and images.
+                                    Update product information,
+                                    pricing, packs and images.
                                 </p>
                             </div>
 
                             <span className="w-fit rounded-full bg-green-50 px-4 py-2 text-xs font-medium text-green-700">
-                                Product ID: {params.id}
+                                Product ID:{" "}
+                                {productId}
                             </span>
                         </div>
                     </div>
@@ -384,7 +852,9 @@ export default function Page() {
                                         type="text"
                                         name="name"
                                         value={form.name}
-                                        onChange={handleNameChange}
+                                        onChange={
+                                            handleNameChange
+                                        }
                                         className={inputClass}
                                         required
                                     />
@@ -399,7 +869,9 @@ export default function Page() {
                                         type="text"
                                         name="slug"
                                         value={form.slug}
-                                        onChange={handleChange}
+                                        onChange={
+                                            handleChange
+                                        }
                                         className={inputClass}
                                         required
                                     />
@@ -412,22 +884,34 @@ export default function Page() {
 
                                     <select
                                         name="category"
-                                        value={form.category}
-                                        onChange={handleChange}
+                                        value={
+                                            form.category
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         className={inputClass}
                                         required
                                     >
                                         <option value="">
-                                            Select Category
+                                            {loadingCategories
+                                                ? "Loading Categories..."
+                                                : "Select Category"}
                                         </option>
 
                                         {categories.map(
                                             (category) => (
                                                 <option
-                                                    key={category}
-                                                    value={category}
+                                                    key={
+                                                        category._id
+                                                    }
+                                                    value={
+                                                        category._id
+                                                    }
                                                 >
-                                                    {category}
+                                                    {
+                                                        category.name
+                                                    }
                                                 </option>
                                             )
                                         )}
@@ -442,8 +926,12 @@ export default function Page() {
                                     <input
                                         type="url"
                                         name="videoLink"
-                                        value={form.videoLink}
-                                        onChange={handleChange}
+                                        value={
+                                            form.videoLink
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         placeholder="https://youtube.com/..."
                                         className={inputClass}
                                     />
@@ -468,8 +956,12 @@ export default function Page() {
                                     <input
                                         type="number"
                                         name="oldPrice"
-                                        value={form.oldPrice}
-                                        onChange={handleChange}
+                                        value={
+                                            form.oldPrice
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         className={inputClass}
                                     />
                                 </div>
@@ -482,8 +974,12 @@ export default function Page() {
                                     <input
                                         type="number"
                                         name="realPrice"
-                                        value={form.realPrice}
-                                        onChange={handleChange}
+                                        value={
+                                            form.realPrice
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         className={inputClass}
                                         required
                                     />
@@ -510,7 +1006,9 @@ export default function Page() {
                                         value={
                                             form.shortDescription
                                         }
-                                        onChange={handleChange}
+                                        onChange={
+                                            handleChange
+                                        }
                                         rows={3}
                                         className={inputClass}
                                         required
@@ -527,7 +1025,9 @@ export default function Page() {
                                         value={
                                             form.longDescription
                                         }
-                                        onChange={handleChange}
+                                        onChange={
+                                            handleChange
+                                        }
                                         rows={7}
                                         className={inputClass}
                                     />
@@ -544,65 +1044,49 @@ export default function Page() {
 
                             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
-                                <div>
-                                    <label className={labelClass}>
-                                        Weight
-                                    </label>
+                                {[
+                                    ["weight", "Weight", "e.g. 500 g"],
+                                    ["length", "Length", "e.g. 20 cm"],
+                                    ["breadth", "Breadth", "e.g. 10 cm"],
+                                    ["height", "Height", "e.g. 5 cm"],
+                                ].map(
+                                    ([
+                                        name,
+                                        label,
+                                        placeholder,
+                                    ]) => (
+                                        <div
+                                            key={name}
+                                        >
+                                            <label
+                                                className={
+                                                    labelClass
+                                                }
+                                            >
+                                                {label}
+                                            </label>
 
-                                    <input
-                                        type="text"
-                                        name="weight"
-                                        value={form.weight}
-                                        onChange={handleChange}
-                                        placeholder="e.g. 500 g"
-                                        className={inputClass}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className={labelClass}>
-                                        Length
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="length"
-                                        value={form.length}
-                                        onChange={handleChange}
-                                        placeholder="e.g. 20 cm"
-                                        className={inputClass}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className={labelClass}>
-                                        Breadth
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="breadth"
-                                        value={form.breadth}
-                                        onChange={handleChange}
-                                        placeholder="e.g. 10 cm"
-                                        className={inputClass}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className={labelClass}>
-                                        Height
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="height"
-                                        value={form.height}
-                                        onChange={handleChange}
-                                        placeholder="e.g. 5 cm"
-                                        className={inputClass}
-                                    />
-                                </div>
+                                            <input
+                                                type="text"
+                                                name={name}
+                                                value={
+                                                    form[
+                                                    name
+                                                    ]
+                                                }
+                                                onChange={
+                                                    handleChange
+                                                }
+                                                placeholder={
+                                                    placeholder
+                                                }
+                                                className={
+                                                    inputClass
+                                                }
+                                            />
+                                        </div>
+                                    )
+                                )}
 
                             </div>
                         </section>
@@ -623,7 +1107,9 @@ export default function Page() {
 
                                 <button
                                     type="button"
-                                    onClick={addFeature}
+                                    onClick={
+                                        addFeature
+                                    }
                                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#C9A227]"
                                 >
                                     <Plus size={16} />
@@ -633,21 +1119,34 @@ export default function Page() {
 
                             <div className="space-y-3">
                                 {form.keyFeatures.map(
-                                    (feature, index) => (
+                                    (
+                                        feature,
+                                        index
+                                    ) => (
                                         <div
-                                            key={index}
+                                            key={
+                                                index
+                                            }
                                             className="flex gap-3"
                                         >
                                             <input
                                                 type="text"
-                                                value={feature}
-                                                onChange={(e) =>
+                                                value={
+                                                    feature
+                                                }
+                                                onChange={(
+                                                    e
+                                                ) =>
                                                     updateFeature(
                                                         index,
-                                                        e.target.value
+                                                        e
+                                                            .target
+                                                            .value
                                                     )
                                                 }
-                                                className={inputClass}
+                                                className={
+                                                    inputClass
+                                                }
                                             />
 
                                             <button
@@ -659,7 +1158,11 @@ export default function Page() {
                                                 }
                                                 className="rounded-xl border border-red-200 px-4 text-red-500 hover:bg-red-50"
                                             >
-                                                <Trash2 size={17} />
+                                                <Trash2
+                                                    size={
+                                                        17
+                                                    }
+                                                />
                                             </button>
                                         </div>
                                     )
@@ -683,7 +1186,9 @@ export default function Page() {
 
                                 <button
                                     type="button"
-                                    onClick={addApplication}
+                                    onClick={
+                                        addApplication
+                                    }
                                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#C9A227]"
                                 >
                                     <Plus size={16} />
@@ -693,21 +1198,34 @@ export default function Page() {
 
                             <div className="space-y-3">
                                 {form.applications.map(
-                                    (application, index) => (
+                                    (
+                                        application,
+                                        index
+                                    ) => (
                                         <div
-                                            key={index}
+                                            key={
+                                                index
+                                            }
                                             className="flex gap-3"
                                         >
                                             <input
                                                 type="text"
-                                                value={application}
-                                                onChange={(e) =>
+                                                value={
+                                                    application
+                                                }
+                                                onChange={(
+                                                    e
+                                                ) =>
                                                     updateApplication(
                                                         index,
-                                                        e.target.value
+                                                        e
+                                                            .target
+                                                            .value
                                                     )
                                                 }
-                                                className={inputClass}
+                                                className={
+                                                    inputClass
+                                                }
                                             />
 
                                             <button
@@ -719,7 +1237,11 @@ export default function Page() {
                                                 }
                                                 className="rounded-xl border border-red-200 px-4 text-red-500 hover:bg-red-50"
                                             >
-                                                <Trash2 size={17} />
+                                                <Trash2
+                                                    size={
+                                                        17
+                                                    }
+                                                />
                                             </button>
                                         </div>
                                     )
@@ -743,7 +1265,9 @@ export default function Page() {
 
                                 <button
                                     type="button"
-                                    onClick={addSpecification}
+                                    onClick={
+                                        addSpecification
+                                    }
                                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#C9A227]"
                                 >
                                     <Plus size={16} />
@@ -753,9 +1277,14 @@ export default function Page() {
 
                             <div className="space-y-3">
                                 {form.specifications.map(
-                                    (specification, index) => (
+                                    (
+                                        specification,
+                                        index
+                                    ) => (
                                         <div
-                                            key={index}
+                                            key={
+                                                index
+                                            }
                                             className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"
                                         >
                                             <input
@@ -763,15 +1292,21 @@ export default function Page() {
                                                 value={
                                                     specification.name
                                                 }
-                                                onChange={(e) =>
+                                                onChange={(
+                                                    e
+                                                ) =>
                                                     updateSpecification(
                                                         index,
                                                         "name",
-                                                        e.target.value
+                                                        e
+                                                            .target
+                                                            .value
                                                     )
                                                 }
                                                 placeholder="Specification name"
-                                                className={inputClass}
+                                                className={
+                                                    inputClass
+                                                }
                                             />
 
                                             <input
@@ -779,15 +1314,21 @@ export default function Page() {
                                                 value={
                                                     specification.value
                                                 }
-                                                onChange={(e) =>
+                                                onChange={(
+                                                    e
+                                                ) =>
                                                     updateSpecification(
                                                         index,
                                                         "value",
-                                                        e.target.value
+                                                        e
+                                                            .target
+                                                            .value
                                                     )
                                                 }
                                                 placeholder="Specification value"
-                                                className={inputClass}
+                                                className={
+                                                    inputClass
+                                                }
                                             />
 
                                             <button
@@ -799,7 +1340,11 @@ export default function Page() {
                                                 }
                                                 className="rounded-xl border border-red-200 px-4 text-red-500 hover:bg-red-50"
                                             >
-                                                <Trash2 size={17} />
+                                                <Trash2
+                                                    size={
+                                                        17
+                                                    }
+                                                />
                                             </button>
                                         </div>
                                     )
@@ -834,14 +1379,21 @@ export default function Page() {
                             <div className="space-y-4">
 
                                 {form.packs.map(
-                                    (pack, index) => (
+                                    (
+                                        pack,
+                                        index
+                                    ) => (
                                         <div
-                                            key={index}
+                                            key={
+                                                index
+                                            }
                                             className="rounded-2xl border border-gray-200 bg-[#F7F7F5] p-4"
                                         >
                                             <div className="mb-4 flex items-center justify-between">
                                                 <p className="font-medium text-[#111111]">
-                                                    Pack {index + 1}
+                                                    Pack{" "}
+                                                    {index +
+                                                        1}
                                                 </p>
 
                                                 <button
@@ -853,14 +1405,22 @@ export default function Page() {
                                                     }
                                                     className="text-red-500 hover:text-red-700"
                                                 >
-                                                    <Trash2 size={17} />
+                                                    <Trash2
+                                                        size={
+                                                            17
+                                                        }
+                                                    />
                                                 </button>
                                             </div>
 
                                             <div className="grid gap-4 md:grid-cols-3">
 
                                                 <div>
-                                                    <label className={labelClass}>
+                                                    <label
+                                                        className={
+                                                            labelClass
+                                                        }
+                                                    >
                                                         Pack Name
                                                     </label>
 
@@ -869,21 +1429,30 @@ export default function Page() {
                                                         value={
                                                             pack.name
                                                         }
-                                                        onChange={(e) =>
+                                                        onChange={(
+                                                            e
+                                                        ) =>
                                                             updatePack(
                                                                 index,
                                                                 "name",
-                                                                e.target
+                                                                e
+                                                                    .target
                                                                     .value
                                                             )
                                                         }
                                                         placeholder="10 Pack Box"
-                                                        className={inputClass}
+                                                        className={
+                                                            inputClass
+                                                        }
                                                     />
                                                 </div>
 
                                                 <div>
-                                                    <label className={labelClass}>
+                                                    <label
+                                                        className={
+                                                            labelClass
+                                                        }
+                                                    >
                                                         Quantity
                                                     </label>
 
@@ -892,21 +1461,30 @@ export default function Page() {
                                                         value={
                                                             pack.quantity
                                                         }
-                                                        onChange={(e) =>
+                                                        onChange={(
+                                                            e
+                                                        ) =>
                                                             updatePack(
                                                                 index,
                                                                 "quantity",
-                                                                e.target
+                                                                e
+                                                                    .target
                                                                     .value
                                                             )
                                                         }
                                                         placeholder="10"
-                                                        className={inputClass}
+                                                        className={
+                                                            inputClass
+                                                        }
                                                     />
                                                 </div>
 
                                                 <div>
-                                                    <label className={labelClass}>
+                                                    <label
+                                                        className={
+                                                            labelClass
+                                                        }
+                                                    >
                                                         Pack Price
                                                     </label>
 
@@ -915,16 +1493,21 @@ export default function Page() {
                                                         value={
                                                             pack.price
                                                         }
-                                                        onChange={(e) =>
+                                                        onChange={(
+                                                            e
+                                                        ) =>
                                                             updatePack(
                                                                 index,
                                                                 "price",
-                                                                e.target
+                                                                e
+                                                                    .target
                                                                     .value
                                                             )
                                                         }
                                                         placeholder="₹ 999"
-                                                        className={inputClass}
+                                                        className={
+                                                            inputClass
+                                                        }
                                                     />
                                                 </div>
 
@@ -949,57 +1532,73 @@ export default function Page() {
                                 </p>
                             </div>
 
-                            {/* EXISTING / NEW IMAGES */}
-                            {form.images.length > 0 && (
-                                <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                            {form.images.length >
+                                0 && (
+                                    <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 
-                                    {form.images.map(
-                                        (image, index) => {
+                                        {form.images.map(
+                                            (
+                                                image,
+                                                index
+                                            ) => {
+                                                const imageSrc =
+                                                    image.type ===
+                                                        "existing"
+                                                        ? image.url
+                                                        : image.preview;
 
-                                            const imageSrc =
-                                                typeof image ===
-                                                    "string"
-                                                    ? image
-                                                    : image.preview;
-
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="group relative overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
-                                                >
-                                                    <img
-                                                        src={imageSrc}
-                                                        alt={`Product ${index + 1}`}
-                                                        className="aspect-square w-full object-cover"
-                                                    />
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            removeImage(
-                                                                index
-                                                            )
-                                                        }
-                                                        className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white transition hover:bg-red-500"
+                                                return (
+                                                    <div
+                                                        key={`${image.type}-${image.key || image.preview}-${index}`}
+                                                        className="group relative overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
                                                     >
-                                                        <X size={15} />
-                                                    </button>
+                                                        <img
+                                                            src={
+                                                                imageSrc
+                                                            }
+                                                            alt={`Product ${index +
+                                                                1
+                                                                }`}
+                                                            className="aspect-square w-full object-cover"
+                                                        />
 
-                                                    {index ===
-                                                        0 && (
-                                                            <span className="absolute bottom-2 left-2 rounded-full bg-[#C9A227] px-2.5 py-1 text-[10px] font-semibold text-white">
-                                                                Main Image
-                                                            </span>
-                                                        )}
-                                                </div>
-                                            );
-                                        }
-                                    )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeImage(
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white transition hover:bg-red-500"
+                                                        >
+                                                            <X
+                                                                size={
+                                                                    15
+                                                                }
+                                                            />
+                                                        </button>
 
-                                </div>
-                            )}
+                                                        {index ===
+                                                            0 && (
+                                                                <span className="absolute bottom-2 left-2 rounded-full bg-[#C9A227] px-2.5 py-1 text-[10px] font-semibold text-white">
+                                                                    Main Image
+                                                                </span>
+                                                            )}
 
-                            {/* UPLOAD */}
+                                                        {image.type ===
+                                                            "new" && (
+                                                                <span className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-1 text-[10px] font-medium text-white">
+                                                                    New
+                                                                </span>
+                                                            )}
+                                                    </div>
+                                                );
+                                            }
+                                        )}
+
+                                    </div>
+                                )}
+
                             <label className="flex min-h-[170px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-[#F7F7F5] px-6 text-center transition hover:border-[#C9A227]">
 
                                 <div className="mb-3 rounded-full bg-white p-3 shadow-sm">
@@ -1021,7 +1620,9 @@ export default function Page() {
                                     type="file"
                                     accept="image/*"
                                     multiple
-                                    onChange={handleImages}
+                                    onChange={
+                                        handleImages
+                                    }
                                     className="hidden"
                                 />
                             </label>
@@ -1045,8 +1646,12 @@ export default function Page() {
                                     <input
                                         type="text"
                                         name="metaTitle"
-                                        value={form.metaTitle}
-                                        onChange={handleChange}
+                                        value={
+                                            form.metaTitle
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         className={inputClass}
                                     />
                                 </div>
@@ -1061,7 +1666,9 @@ export default function Page() {
                                         value={
                                             form.metaDescription
                                         }
-                                        onChange={handleChange}
+                                        onChange={
+                                            handleChange
+                                        }
                                         rows={4}
                                         className={inputClass}
                                     />
@@ -1082,9 +1689,19 @@ export default function Page() {
 
                             <button
                                 type="submit"
-                                className="rounded-xl bg-[#C9A227] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#b28d20]"
+                                disabled={saving}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#b28d20] disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                Update Product
+                                {saving && (
+                                    <Loader2
+                                        size={17}
+                                        className="animate-spin"
+                                    />
+                                )}
+
+                                {saving
+                                    ? "Updating..."
+                                    : "Update Product"}
                             </button>
 
                         </div>

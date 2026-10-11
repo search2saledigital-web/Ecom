@@ -28,11 +28,11 @@ import { usePathname } from "next/navigation";
 
 const menuItems = [
     { name: "Home", href: "/" },
-    { name: "Shop", href: "/shop" },
+    { name: "Shop", href: "/our-products" },
     { name: "New Arrivals", href: "/new-arrivals" },
     { name: "Best Sellers", href: "/bestsellers" },
-    { name: "About Us", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "About Us", href: "/about-us" },
+    { name: "Contact", href: "/contact-us" },
 ];
 
 const socialItems = [
@@ -52,6 +52,29 @@ export default function Navbar() {
     const [mobileMenu, setMobileMenu] = useState(false);
     const [showTopBar, setShowTopBar] = useState(true);
     const lastScrollY = useRef(0);
+
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch("/api/categories");
+                const data = await res.json();
+
+                if (res.ok) {
+                    setCategories(
+                        Array.isArray(data)
+                            ? data
+                            : data.categories || []
+                    );
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -521,7 +544,7 @@ export default function Navbar() {
                             }}
                         >
                             <Link
-                                href="/shop"
+                                href="/our-products"
                                 className="text-sm font-medium text-white transition-colors hover:text-[#C9A227]"
                             >
                                 Shop
@@ -557,27 +580,42 @@ export default function Navbar() {
                             </button>
 
 
-                            {/* Dropdown */}
-                            <div className="invisible absolute left-0 top-full z-50 w-56 translate-y-2 border border-gray-200 bg-white py-2 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                            <div className="invisible absolute left-0 top-full z-50 w-64 translate-y-2
+    border border-gray-200 bg-white py-2 opacity-0 shadow-xl
+    transition-all duration-200
+    group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
 
-                                {[
-                                    "Men",
-                                    "Women",
-                                    "New Arrivals",
-                                    "Best Sellers",
-                                ].map((category) => (
+                                {categories
+                                    .filter((category) => category.status !== "inactive")
+                                    .map((category) => (
+                                        <Link
+                                            key={category._id}
+                                            href={`/our-products?category=${encodeURIComponent(
+                                                category.slug
+                                            )}`}
+                                            className="block px-5 py-3 text-sm text-gray-700
+                    transition-colors hover:bg-gray-50
+                    hover:text-[#C9A227]"
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    ))}
+
+                                {categories.length === 0 && (
+                                    <p className="px-5 py-3 text-sm text-gray-500">
+                                        No categories available
+                                    </p>
+                                )}
+
+                                <div className=" border-t border-gray-100 ">
                                     <Link
-                                        key={category}
-                                        href={`/ category / ${category
-                                            .toLowerCase()
-                                            .replaceAll(" ", "-")
-                                            } `}
-                                        className="block px-5 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#C9A227]"
+                                        href="/our-products"
+                                        className="block px-5 py-3 text-sm font-semibold
+                text-[#111111] hover:text-[#C9A227]"
                                     >
-                                        {category}
+                                        View All Products →
                                     </Link>
-                                ))}
-
+                                </div>
                             </div>
 
                         </motion.div>
