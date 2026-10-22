@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,6 +12,9 @@ import {
   Gift,
   Star,
 } from "lucide-react";
+
+import "swiper/css";
+import "swiper/css/pagination";
 
 const products = [
   {
@@ -91,21 +96,7 @@ Thank you.`;
 }
 
 export default function DiwaliSpecial() {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const nextSlide = () => {
-    setActiveIndex((prev) => (prev + 1) % products.length);
-  };
-
-  const prevSlide = () => {
-    setActiveIndex(
-      (prev) => (prev - 1 + products.length) % products.length
-    );
-  };
-
-  const visibleProducts = Array.from({ length: 4 }, (_, index) => {
-    return products[(activeIndex + index) % products.length];
-  });
+  const [swiperInstance, setSwiperInstance] = useState(null);
 
   return (
     <section
@@ -139,123 +130,147 @@ export default function DiwaliSpecial() {
             </p>
           </div>
 
-          {/* Slider arrows */}
+          {/* Swiper navigation */}
           <div className="flex shrink-0 items-center gap-3">
             <button
               type="button"
-              onClick={prevSlide}
+              onClick={() => swiperInstance?.slidePrev()}
               aria-label="Previous products"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-[#14213d] shadow-sm transition hover:border-[#c18425] hover:bg-[#c18425] hover:text-white"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[#14213d] shadow-sm transition hover:border-[#c18425] hover:bg-[#c18425] hover:text-white sm:h-12 sm:w-12"
             >
               <ArrowLeft size={20} />
             </button>
 
             <button
               type="button"
-              onClick={nextSlide}
+              onClick={() => swiperInstance?.slideNext()}
               aria-label="Next products"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-[#14213d] shadow-sm transition hover:border-[#c18425] hover:bg-[#c18425] hover:text-white"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[#14213d] shadow-sm transition hover:border-[#c18425] hover:bg-[#c18425] hover:text-white sm:h-12 sm:w-12"
             >
               <ArrowRight size={20} />
             </button>
           </div>
         </div>
 
-        {/* Product cards */}
-        <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {visibleProducts.map((product) => (
-            <article
-              key={product.id}
-              className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#e9e3d9] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#d7b77c] hover:shadow-xl hover:shadow-amber-900/10"
-            >
-              {/* Product image */}
-              <div
-                className={`relative aspect-[4/3] overflow-hidden ${product.bg}`}
-              >
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+        {/* Swiper product slider */}
+        <div className="diwali-swiper mt-8 sm:mt-10">
+          <Swiper
+            modules={[Navigation, Pagination]}
+            onSwiper={setSwiperInstance}
+            slidesPerView={2}
+            slidesPerGroup={2}
+            spaceBetween={12}
+            speed={600}
+            loop={true}
+            pagination={{
+              clickable: true,
+              el: ".diwali-pagination",
+            }}
+            breakpoints={{
+              0: {
+                slidesPerView: 2,
+                slidesPerGroup: 2,
+                spaceBetween: 10,
+              },
+              480: {
+                slidesPerView: 2,
+                slidesPerGroup: 2,
+                spaceBetween: 14,
+              },
+              768: {
+                slidesPerView: 2,
+                slidesPerGroup: 2,
+                spaceBetween: 20,
+              },
+              1024: {
+                slidesPerView: 4,
+                slidesPerGroup: 1,
+                spaceBetween: 20,
+              },
+              1280: {
+                slidesPerView: 4,
+                slidesPerGroup: 1,
+                spaceBetween: 24,
+              },
+            }}
+            className="!overflow-visible"
+          >
+            {products.map((product) => (
+              <SwiperSlide key={product.id} className="!h-auto">
+                <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#e9e3d9] bg-white shadow-sm transition-all duration-300 hover:border-[#d7b77c] hover:shadow-xl hover:shadow-amber-900/10 sm:rounded-2xl">
+                  {/* Product image */}
+                  <div
+                    className={`relative aspect-square overflow-hidden sm:aspect-[4/3] ${product.bg}`}
+                  >
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 767px) 50vw, (max-width: 1023px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
 
-                <span className="absolute left-3 top-3 rounded-full border border-white/60 bg-white/90 px-3 py-1.5 text-[9px] font-extrabold tracking-wider text-[#9b641d] shadow-sm">
-                  {product.badge}
-                </span>
-              </div>
+                    <span className="absolute left-1.5 top-1.5 max-w-[calc(100%-12px)] rounded-full border border-white/60 bg-white/95 px-2 py-1 text-[7px] font-extrabold tracking-wide text-[#9b641d] shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-[9px]">
+                      {product.badge}
+                    </span>
+                  </div>
 
-              {/* Product information */}
-              <div className="flex flex-1 flex-col p-5">
-                <div className="flex items-center gap-2">
-                  <Star
-                    size={12}
-                    className="fill-[#c18425] text-[#c18425]"
-                  />
-                  <span className="text-[9px] font-extrabold uppercase tracking-[0.17em] text-[#b57922]">
-                    {product.category}
-                  </span>
-                </div>
+                  {/* Product details */}
+                  <div className="flex flex-1 flex-col p-2.5 sm:p-4 lg:p-5">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <Star
+                        size={11}
+                        className="shrink-0 fill-[#c18425] text-[#c18425] sm:h-3 sm:w-3"
+                      />
 
-                <h3 className="mt-3 text-lg font-bold leading-snug text-[#14213d] sm:text-xl">
-                  {product.name}
-                </h3>
+                      <span className="text-[7px] font-extrabold uppercase leading-tight tracking-wide text-[#b57922] sm:text-[9px] sm:tracking-[0.12em]">
+                        {product.category}
+                      </span>
+                    </div>
 
-                <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">
-                  {product.description}
-                </p>
+                    <h3 className="mt-2 text-sm font-bold leading-snug text-[#14213d] sm:mt-3 sm:text-lg lg:text-xl">
+                      {product.name}
+                    </h3>
 
-                {/* Inquiry button below product name and description */}
-                <a
-                  href={getWhatsAppLink(product.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#14213d] px-4 py-3 text-sm font-bold text-white transition duration-300 hover:bg-[#c18425] focus:outline-none focus:ring-4 focus:ring-amber-200"
-                >
-                  <MessageCircle size={17} />
-                  Inquire Now
-                  <ArrowRight
-                    size={16}
-                    className="transition-transform group-hover:translate-x-1"
-                  />
-                </a>
-              </div>
-            </article>
-          ))}
+                    <p className="mt-2 flex-1 text-[11px] leading-5 text-slate-600 sm:mt-3 sm:text-sm sm:leading-5">
+                      {product.description}
+                    </p>
+
+                    {/* WhatsApp inquiry button */}
+                    <a
+                      href={getWhatsAppLink(product.name)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex min-h-9 w-full items-center justify-center gap-1 rounded-lg bg-[#14213d] px-2 py-2 text-[10px] font-bold text-white transition hover:bg-[#c18425] focus:outline-none focus:ring-2 focus:ring-amber-300 sm:mt-5 sm:min-h-11 sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 sm:text-xs"
+                    >
+                      <MessageCircle size={13} className="shrink-0 sm:h-4 sm:w-4" />
+                      <span>Inquire Now</span>
+                      <ArrowRight size={12} className="shrink-0 sm:h-4 sm:w-4" />
+                    </a>
+                  </div>
+                </article>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+
+          {/* Pagination dots */}
+          <div className="diwali-pagination mt-7 flex items-center justify-center gap-1.5" />
         </div>
 
-        {/* Slider indicator */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          {products.map((product, index) => (
-            <button
-              key={product.id}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              aria-label={`Show products starting at ${product.name}`}
-              aria-current={activeIndex === index ? "true" : undefined}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                activeIndex === index
-                  ? "w-8 bg-[#c18425]"
-                  : "w-2 bg-[#ded6c8] hover:bg-[#c18425]/60"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Bulk order banner */}
-        <div className="relative mt-12 overflow-hidden rounded-2xl bg-[#14213d] px-6 py-8 sm:px-9 sm:py-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
+        {/* Bulk order CTA */}
+        <div className="relative mt-10 overflow-hidden rounded-2xl bg-[#14213d] px-5 py-7 sm:mt-12 sm:px-9 sm:py-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
           <div className="pointer-events-none absolute -right-12 -top-20 h-52 w-52 rounded-full border-[28px] border-white/[0.04]" />
 
           <div className="relative">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-amber-400">
+            <span className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-amber-400 sm:text-[10px] sm:tracking-[0.22em]">
               Make This Diwali Memorable
             </span>
 
-            <h3 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
+            <h3 className="mt-3 text-xl font-bold text-white sm:text-3xl">
               Planning Corporate Diwali Gifting?
             </h3>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            <p className="mt-3 max-w-2xl text-xs leading-6 text-slate-300 sm:text-base">
               Share your quantity, budget, preferred products, and branding
               requirements. Let&apos;s create a memorable gifting experience
               for your team and clients.
@@ -263,17 +278,42 @@ export default function DiwaliSpecial() {
           </div>
 
           <a
-            href={getWhatsAppLink("a corporate Diwali bulk gifting collection")}
+            href={getWhatsAppLink(
+              "a corporate Diwali bulk gifting collection"
+            )}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative mt-6 inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-6 py-4 text-sm font-extrabold text-[#14213d] transition hover:-translate-y-1 hover:bg-amber-300 lg:mt-0"
+            className="relative mt-5 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-xs font-extrabold text-[#14213d] transition hover:-translate-y-1 hover:bg-amber-300 sm:mt-6 sm:min-h-12 sm:w-auto sm:px-6 sm:py-4 sm:text-sm lg:mt-0"
           >
-            <MessageCircle size={18} />
+            <MessageCircle size={17} />
             Request Bulk Quote
             <ArrowRight size={17} />
           </a>
         </div>
       </div>
+
+      {/* Swiper pagination styling */}
+      <style jsx global>{`
+        .diwali-pagination .swiper-pagination-bullet {
+          width: 7px;
+          height: 7px;
+          display: inline-block;
+          border-radius: 999px;
+          background: #ded6c8;
+          opacity: 1;
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .diwali-pagination .swiper-pagination-bullet-active {
+          width: 24px;
+          background: #c18425;
+        }
+
+        .diwali-swiper .swiper-slide {
+          height: auto;
+        }
+      `}</style>
     </section>
   );
 }
