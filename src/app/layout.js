@@ -3,6 +3,7 @@ import "./globals.css";
 import SmoothScroll from "@/components/main/SmoothScroll";
 import Navbar from "@/components/main/Navbar";
 import Footer from "@/components/main/Footer";
+import StickyButton from "@/components/main/StickyButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen flex flex-col">
         <Navbar />
         <SmoothScroll />
+        <StickyButton />
         {children}
         <Footer />
       </body>

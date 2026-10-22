@@ -1,3 +1,4 @@
+import DiwaliSpecial from '@/components/Festivals/DiwaliSpecial'
 import Hero from '@/components/home/Hero'
 import BestSellerSlider from '@/components/inquiry/BestSellerSlider'
 import CTA from '@/components/inquiry/CTA'
@@ -14,6 +15,7 @@ export default function Inquiry() {
     <Hero/> 
     <ProductShowcase/>
     <InquiryForm/>
+    <DiwaliSpecial/>
     <BestSellerSlider/>
     <GiftBanner />
     <FeaturedProduct />
